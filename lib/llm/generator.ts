@@ -1,6 +1,7 @@
 import { callOpenRouterCompletion } from "./client";
 import { Question, QuestionType, QuizConfig } from "@/types/quiz";
-import { TOPIC_CATEGORIES, SEED_QUESTIONS } from "@/constants/topics";
+import { TOPIC_CATEGORIES } from "@/constants/topics";
+import { getQuestionsFromDb, saveQuestionsToDb } from "@/lib/db";
 
 function cleanJsonString(raw: string): string {
   let cleaned = raw.trim();
@@ -88,17 +89,23 @@ Make sure each question has exactly 4 distinct, believable options (indices 0 to
       }));
 
       if (questions.length > 0) {
+        // Save to SQLite database
+        try {
+          saveQuestionsToDb(questions);
+        } catch (dbErr) {
+          console.warn("Could not cache questions in SQLite:", dbErr);
+        }
         return questions.slice(0, config.questionCount);
       }
     }
   } catch (error) {
-    console.error("LLM Generation error, falling back to seed/fallback questions:", error);
+    console.error("LLM Generation error, retrieving questions from SQLite db seed:", error);
   }
 
-  // Fallback to seed questions or generated defaults
-  const seed = SEED_QUESTIONS[config.topicId] || [];
-  if (seed.length >= config.questionCount) {
-    return seed.slice(0, config.questionCount);
+  // Fallback to SQLite DB seed questions
+  const dbQuestions = getQuestionsFromDb(config.topicId, config.questionCount);
+  if (dbQuestions.length >= config.questionCount) {
+    return dbQuestions.slice(0, config.questionCount);
   }
 
   const fallbackQuestion: Question = {
@@ -119,5 +126,5 @@ Make sure each question has exactly 4 distinct, believable options (indices 0 to
     keyTakeaway: "Core engineering principles rely on deterministic runtime invariants.",
   };
 
-  return [...seed, fallbackQuestion].slice(0, config.questionCount);
+  return [...dbQuestions, fallbackQuestion].slice(0, config.questionCount);
 }
