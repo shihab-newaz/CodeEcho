@@ -1,0 +1,35 @@
+name: CI Validation
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  validate:
+    name: Type Check & Build Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Type Check
+        run: npx tsc --noEmit
+
+      - name: Build Next.js Standalone
+        env:
+          NEXTAUTH_SECRET: "ci-validation-secret-key-123456"
+          NEXTAUTH_URL: "http://localhost:3000"
+          OPENROUTER_API_KEY: "mock-ci-key"
+        run: npm run build
