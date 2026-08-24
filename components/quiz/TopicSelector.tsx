@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TOPIC_CATEGORIES } from "@/constants/topics";
-import { DifficultyLevel } from "@/types/quiz";
+import { DifficultyLevel, TopicCategory } from "@/types/quiz";
 import {
   GitBranch,
   Network,
@@ -35,16 +34,20 @@ const ICON_MAP: Record<string, React.ElementType> = {
   FileCode,
 };
 
-export function TopicSelector() {
+interface TopicSelectorProps {
+  topics: TopicCategory[];
+}
+
+export function TopicSelector({ topics }: TopicSelectorProps) {
   const router = useRouter();
-  const [selectedTopicId, setSelectedTopicId] = useState<string>("dsa");
+  const [selectedTopicId, setSelectedTopicId] = useState<string>(topics[0]?.id || "dsa");
   const [difficulty, setDifficulty] = useState<DifficultyLevel>("intermediate");
   const [questionCount, setQuestionCount] = useState<number>(5);
   const [customPrompt, setCustomPrompt] = useState<string>("");
   const [isCustomMode, setIsCustomMode] = useState<boolean>(false);
 
-  const csBasics = TOPIC_CATEGORIES.filter((t) => t.category === "cs_basics");
-  const codeSnippets = TOPIC_CATEGORIES.filter((t) => t.category === "code_snippets");
+  const csBasics = topics.filter((t) => t.category === "cs_basics");
+  const codeSnippets = topics.filter((t) => t.category === "code_snippets");
 
   const handleStart = () => {
     if (isCustomMode) {
@@ -68,7 +71,7 @@ export function TopicSelector() {
           Technical Assessment Engine
         </h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Precision question generation across CS fundamentals and code output prediction, evaluated via OpenRouter open-weight models.
+          Precision question generation across CS fundamentals and code output prediction, stored in SQLite and evaluated via OpenRouter open-weight models.
         </p>
       </div>
 
@@ -82,7 +85,7 @@ export function TopicSelector() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          [01] Curated Taxonomy
+          [01] Database Taxonomy ({topics.length})
         </button>
         <button
           onClick={() => setIsCustomMode(true)}

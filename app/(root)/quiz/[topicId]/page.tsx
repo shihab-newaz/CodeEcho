@@ -1,6 +1,8 @@
 import { QuizRunner } from "@/components/quiz/QuizRunner";
-import { TOPIC_CATEGORIES } from "@/constants/topics";
+import { getTopicByIdFromDb } from "@/lib/db";
 import { DifficultyLevel, QuizConfig } from "@/types/quiz";
+
+export const dynamic = "force-dynamic";
 
 interface QuizPageProps {
   params: Promise<{ topicId: string }>;
@@ -15,7 +17,7 @@ export default async function QuizPage({ params, searchParams }: QuizPageProps) 
   const { topicId } = await params;
   const query = await searchParams;
 
-  const topicMeta = TOPIC_CATEGORIES.find((t) => t.id === topicId);
+  const topicMeta = getTopicByIdFromDb(topicId);
   const difficulty = (query.difficulty as DifficultyLevel) || topicMeta?.defaultDifficulty || "intermediate";
   const questionCount = query.count ? parseInt(query.count, 10) : 5;
   const isCustom = topicId === "custom";

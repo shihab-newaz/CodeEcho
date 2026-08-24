@@ -1,7 +1,6 @@
 import { callOpenRouterCompletion } from "./client";
 import { Question, QuestionType, QuizConfig } from "@/types/quiz";
-import { TOPIC_CATEGORIES } from "@/constants/topics";
-import { getQuestionsFromDb, saveQuestionsToDb } from "@/lib/db";
+import { getQuestionsFromDb, saveQuestionsToDb, getTopicByIdFromDb } from "@/lib/db";
 
 function cleanJsonString(raw: string): string {
   let cleaned = raw.trim();
@@ -14,14 +13,14 @@ function cleanJsonString(raw: string): string {
 }
 
 export async function generateQuizQuestions(config: QuizConfig): Promise<Question[]> {
-  const topicMeta = TOPIC_CATEGORIES.find((t) => t.id === config.topicId);
+  const topicMeta = getTopicByIdFromDb(config.topicId);
   const topicTitle = config.topicTitle || topicMeta?.title || "Computer Science";
   const isCodeOutput = topicMeta?.category === "code_snippets" || config.topicId.includes("output");
   const qType: QuestionType = isCodeOutput ? "code_output" : "mcq";
 
   const preferredModel = isCodeOutput
-    ? "qwen/qwen-2.5-coder-32b-instruct:free"
-    : "meta-llama/llama-3.3-70b-instruct:free";
+    ? "qwen/qwen-2.5-coder-32b-instruct"
+    : "meta-llama/llama-3.3-70b-instruct";
 
   const systemPrompt = `You are a world-class principal software engineer and CS interviewer.
 Generate realistic, precise, high-craft technical assessment questions for developers.

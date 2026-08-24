@@ -1,9 +1,11 @@
-export const OPENROUTER_FREE_MODELS = [
+export const OPENROUTER_MODELS = [
+  "qwen/qwen-2.5-coder-32b-instruct",
+  "meta-llama/llama-3.3-70b-instruct",
+  "meta-llama/llama-3.1-8b-instruct",
+  "google/gemini-2.0-flash-001",
   "qwen/qwen-2.5-coder-32b-instruct:free",
   "meta-llama/llama-3.3-70b-instruct:free",
   "meta-llama/llama-3.1-8b-instruct:free",
-  "mistralai/mistral-7b-instruct:free",
-  "google/gemini-2.0-flash-exp:free",
 ];
 
 export async function callOpenRouterCompletion({
@@ -20,7 +22,7 @@ export async function callOpenRouterCompletion({
   const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || "";
   const modelsToTry = [
     preferredModel,
-    ...OPENROUTER_FREE_MODELS.filter((m) => m !== preferredModel),
+    ...OPENROUTER_MODELS.filter((m) => m !== preferredModel),
   ].filter(Boolean) as string[];
 
   let lastError: Error | null = null;
@@ -45,7 +47,7 @@ export async function callOpenRouterCompletion({
 
       if (!response.ok) {
         const errText = await response.text();
-        console.warn(`OpenRouter model ${model} failed with ${response.status}: ${errText}`);
+        console.warn(`OpenRouter model ${model} returned ${response.status}: ${errText}`);
         continue;
       }
 
@@ -60,5 +62,5 @@ export async function callOpenRouterCompletion({
     }
   }
 
-  throw lastError || new Error("Failed to get response from OpenRouter free models.");
+  throw lastError || new Error("Failed to get response from OpenRouter models.");
 }
