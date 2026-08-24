@@ -39,9 +39,16 @@ export function QuizRunner({ config }: QuizRunnerProps) {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
-      if (!data.success || !data.questions || data.questions.length === 0) {
-        throw new Error(data.error || "Failed to load questions");
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || `Server returned ${res.status}`);
+      }
+
+      if (!res.ok || !data.success || !data.questions || data.questions.length === 0) {
+        throw new Error(data?.error || "Failed to load questions from assessment engine.");
       }
 
       setQuestions(data.questions);
